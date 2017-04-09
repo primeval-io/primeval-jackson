@@ -1,0 +1,6 @@
+Bundle-SymbolicName: io.primeval.jackson
+Export-Package: com.fasterxml.jackson.core, com.fasterxml.jackson.core.*, \
+ com.fasterxml.jackson.databind, com.fasterxml.jackson.databind.*, \
+ com.fasterxml.jackson.annotation, \
+ com.fasterxml.jackson.datatype.jsr310, com.fasterxml.jackson.datatype.jsr310.*, \
+ com.fasterxml.jackson.datatype.jdk8, com.fasterxml.jackson.module.paramnames
