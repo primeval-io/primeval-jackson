@@ -4,12 +4,8 @@ jdk:
 sudo: false
 script: mvn clean verify
 after_success:
-- VERSION=`python -c "import xml.etree.ElementTree as ET;  print(ET.parse(open('pom.xml')).getroot().find('{http://maven.apache.org/POM/4.0.0}version').text)"`
-- echo "Found version $VERSION"
-- if [[ $VERSION == *-SNAPSHOT ]]; then echo "Deploying to OSSRH Snapshots..."; mvn
-  clean deploy -DaltDeploymentRepository=ossrh::default::https://oss.sonatype.org/content/repositories/snapshots
-  -DskipTests -B --settings .travis-deploy-settings.xml; else echo "Release version,
-  deploy is manual."; fi
+- git clone --depth=1 https://github.com/primeval-io/travis-ci-build-setup.git
+- bash travis-ci-build-setup/maybe-deploy-snapshot.sh
 env:
   global:
   - secure: MOAgW7gpyRpRFAdJUYzEMDEBKA3KdBI82fpMmcoZ+Qy1FgS65HDJMXfJu6WjM9NLgLygLrsrs2w1FBROkK8HT5uIj9k4AOEjHBlExKIycMMlYZyBQ9ImI/PkUtym7wyJuleQQspD++8dKnkbcF4RkPZjpst1msxvbEVfXCYlwF2+j+tN8sVDVAJre3m1jlgeUBQAb0WMxl2FOyUIib9MVGd5VHmAxNtlhCAZT+48BlFZ2xUZS5bKpuOfD8F1EnT/+rpoS/p4yZc+53L3zF95rMjDE/87YBy5WolAJZCmGGNDJovjc6c/LO0TJaKcq+DO/B5FUo+bwhpA2Q5oILTEAaqGSXhTYppk6KnlfYejOsptbRwIYOAhRE4LJyl+kzvIvRj6ARdHehnOutOezmgj6K0xupGZkCMP92UdafZrAR8f/1IQaLS+ktLPAALniLRDryU+Q919vq+B0q4xctMAVoWuHAMopCH+yK0ax3iSspurJT1fe4+nNfVfGDdcX12ONkdTja/IYmp8+UwOLZ4enDr43YepjtdcUi4cqY5QSy9a365TBzfAycxojgXeFnTyu1PUiYCNfErr0v7+0QsJczfmQhKbxRJRvQClFU3mQ7j92o0E7uzu3QVxnz/72NloNYHoSwiX6VhLnY7osanzKYhn6ACUBfQ3DGfUm08qlpc=
