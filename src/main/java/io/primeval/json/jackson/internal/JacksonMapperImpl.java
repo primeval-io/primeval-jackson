@@ -22,12 +22,18 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonCreator.Mode;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.cfg.MapperConfig;
+import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
@@ -45,10 +51,11 @@ import io.primeval.json.jackson.JacksonMapper;
 @Component(immediate = true, service = { JacksonMapper.class, JsonSerDes.class, JsonSerializer.class,
         JsonDeserializer.class })
 public final class JacksonMapperImpl implements JacksonMapper {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JacksonMapperImpl.class);
 
-    private final List<Module> BASE_MODULES = Arrays.asList(new Jdk8Module(), new JavaTimeModule(),
-            new ParameterNamesModule());
+    private static final List<Module> BASE_MODULES = Arrays.asList(new Jdk8Module(), new JavaTimeModule(),
+            new ParameterNamesModule(Mode.PROPERTIES));
 
     private final Object lock = new Object();
     private ObjectMapper mapper;
@@ -79,7 +86,21 @@ public final class JacksonMapperImpl implements JacksonMapper {
         this.mapper.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         this.mapper.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
-
+        this.mapper.enable(MapperFeature.INFER_CREATOR_FROM_CONSTRUCTOR_PROPERTIES);
+        this.mapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+            public JsonCreator.Mode findCreatorAnnotation(MapperConfig<?> config, Annotated a) {
+                JsonCreator ann = _findAnnotation(a, JsonCreator.class);
+                if (ann != null) {
+                    JsonCreator.Mode mode = ann.mode();
+                    // but keep in mind that there may be explicit default for this module
+                    if (mode == JsonCreator.Mode.DEFAULT) {
+                        mode = Mode.PROPERTIES;
+                    }
+                    return mode;
+                }
+                return Mode.PROPERTIES;
+            }
+        });
         // TODO Make Filters & AnnotationIntrospecter settable with service
     }
 
